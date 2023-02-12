@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp()));
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -22,20 +21,21 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends ConsumerStatefulWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  ConsumerState<MyHomePage> createState() => _MyHomePageState();
+  State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends ConsumerState<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> {
   Timer? timer;
   Duration duration = Duration.zero;
   bool timerOn = false;
-  List<Duration> lapList = [];
+  int counter = 1;
+  List<Lap> lapList = [];
 
   @override
   Widget build(BuildContext context) {
@@ -75,22 +75,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
             const SizedBox(height: 25),
             const Divider(
                 indent: 10, endIndent: 10, color: Colors.white, thickness: 1),
-            Expanded(child: Consumer(builder: (context, ref, _) {
-              // final lapList = ref.watch(providerOfLaps);
-              lapList.sort(((a, b) => b.inSeconds.compareTo(a.inSeconds)));
-
-              return ListView.builder(
-                padding: const EdgeInsets.only(bottom: 50),
-                itemBuilder: (ctx, i) {
-                  final lap = lapList[i];
-
-                  return Lap(
-                    key: ValueKey(lap.inSeconds),
-                    number: i,
-                    lap: lap,
-                  );
-                },
+            Expanded(child: Builder(builder: (context) {
+              return ListView.separated(
                 itemCount: lapList.length,
+                itemBuilder: (ctx, i) => lapList[i],
+                separatorBuilder: (context, index) => const Divider(
+                  indent: 10,
+                  endIndent: 10,
+                  thickness: .5,
+                  color: Colors.white,
+                ),
               );
             })),
           ],
@@ -101,10 +95,10 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     setState(() {
       timerOn = true;
     });
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
       setState(() {
-        final seconds = duration.inSeconds + 1;
-        duration = Duration(seconds: seconds);
+        final milliseconds = duration.inMilliseconds + 10;
+        duration = Duration(milliseconds: milliseconds);
       });
     });
   }
@@ -117,13 +111,16 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
   }
 
   void startLap() {
-    final currentSeconds = duration.inSeconds;
-    final newLap = Duration(seconds: currentSeconds);
-    // final lapList = ref.read(providerOfLaps);
+    final currentMilliseconds = duration.inMilliseconds;
+    final newLap = Lap(
+        key: ValueKey(currentMilliseconds),
+        number: counter,
+        lap: Duration(milliseconds: currentMilliseconds));
+
     setState(() {
-      lapList.add(newLap);
+      lapList.insert(0, newLap);
+      counter++;
     });
-    // ref.read(providerOfLaps.notifier).state = lapList;
   }
 
   void resetTimer() {
@@ -131,7 +128,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
       duration = Duration.zero;
       lapList.clear();
     });
-    // ref.read(providerOfLaps.notifier).state = [];
   }
 
   @override
@@ -169,6 +165,14 @@ class TimerButton extends StatelessWidget {
   }
 }
 
+class CurrentLap extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    throw UnimplementedError();
+  }
+}
+
 class Lap extends StatelessWidget {
   const Lap({Key? key, required this.number, required this.lap})
       : super(key: key);
@@ -178,7 +182,7 @@ class Lap extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.all(10),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -201,45 +205,13 @@ class Lap extends StatelessWidget {
   }
 }
 
-final providerOfLaps = AutoDisposeStateProvider<List<Duration>>((ref) => []);
-
-// final providerOfDuration = StateProvider.autoDispose((ref) {
-//   return Duration.zero;
-// });
-// final providerOfDate = AutoDisposeStateProvider<DateTime?>((ref) => null);
-
-// final providerOfPeriodicReubild =
-//     AutoDisposeStreamProviderFamily<int, Duration>(
-//         (ref, duration) => Stream.periodic(duration));
-
-// class PeriodicRebuilderState extends ChangeNotifier {
-//   PeriodicRebuilderState(this.duration) {
-//     timer = Timer.periodic(duration, (t) {
-//       notifyListeners();
-//     });
-//   }
-//   final Duration duration;
-//   Timer? timer;
-
-// }
-
 String formatTimerDuration(Duration duration) {
-  final seconds = duration.inSeconds;
-  final int hour = seconds ~/ 3600;
-  final int minute = seconds % 3600 ~/ 60;
-  final int second = seconds % 60;
-  // final millisecond = seconds * 1000 ~/ 10;
+  final milliseconds = duration.inMilliseconds;
+  final minute = milliseconds ~/ 60000;
+  final second = (milliseconds ~/ 1000) % 60;
+  final millisecond = (milliseconds % 1000) ~/ 10;
 
-  // final milliseconds = duration.inMilliseconds;
-  // final minute = milliseconds ~/ 60000;
-  // final second = (milliseconds ~/ 1000) % 60;
-  // final centiseconds = (milliseconds ~/ 10) % 100;
-
-  //
-
-  return '${_formatTimer(hour)}:${_formatTimer(minute)}:${_formatTimer(second)}';
-
-  // return '${_formatTimer(minute)}:${_formatTimer(second)}:${_formatTimer(centiseconds)}';
+  return '${_formatTimer(minute)}:${_formatTimer(second)}:${_formatTimer(millisecond)}';
 }
 
 String _formatTimer(int timeNum) {
