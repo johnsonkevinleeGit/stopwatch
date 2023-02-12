@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:stopwatch_application/lap.dart';
+import 'package:stopwatch_application/timer_button.dart';
+import 'package:stopwatch_application/timer_utils.dart';
 
 void main() {
   runApp(const MyApp());
@@ -44,9 +47,9 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.black87,
+        backgroundColor: Colors.black12,
         appBar: AppBar(
-          title: Text(widget.title),
+          title: Center(child: Text(widget.title)),
         ),
         body: Center(
             child: Column(
@@ -55,12 +58,15 @@ class _MyHomePageState extends State<MyHomePage> {
           children: [
             const SizedBox(height: 25),
             Center(
-              child: Text(
-                formatTimerDuration(mainDuration),
-                style: Theme.of(context)
-                    .textTheme
-                    .headline2
-                    ?.copyWith(color: Colors.white),
+              child: SizedBox(
+                width: 250,
+                child: Text(
+                  formatTimerDuration(mainDuration),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headline2
+                      ?.copyWith(color: Colors.white),
+                ),
               ),
             ),
             const SizedBox(height: 10),
@@ -164,77 +170,4 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
     mainTimer?.cancel();
   }
-}
-
-class TimerButton extends StatelessWidget {
-  const TimerButton(
-      {Key? key,
-      required this.color,
-      required this.onPressed,
-      required this.text})
-      : super(key: key);
-  final Color color;
-  final void Function()? onPressed;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(minWidth: 90),
-      child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: color,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(25),
-            ),
-          ),
-          onPressed: onPressed,
-          child: Text(text, style: Theme.of(context).textTheme.headline6)),
-    );
-  }
-}
-
-class Lap extends StatelessWidget {
-  const Lap({Key? key, required this.number, required this.lap})
-      : super(key: key);
-  final int number;
-  final Duration lap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text('Lap $number',
-              style: Theme.of(context)
-                  .textTheme
-                  .headline6
-                  ?.copyWith(color: Colors.white)),
-          Text(
-            formatTimerDuration(lap),
-            style: Theme.of(context)
-                .textTheme
-                .headline6
-                ?.copyWith(color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-String formatTimerDuration(Duration duration) {
-  final milliseconds = duration.inMilliseconds;
-  final minute = milliseconds ~/ 60000;
-  final second = (milliseconds ~/ 1000) % 60;
-  final millisecond = (milliseconds % 1000) ~/ 10;
-
-  return '${_formatTimer(minute)}:${_formatTimer(second)}:${_formatTimer(millisecond)}';
-}
-
-String _formatTimer(int timeNum) {
-  return timeNum < 10 ? '0$timeNum' : timeNum.toString();
 }
