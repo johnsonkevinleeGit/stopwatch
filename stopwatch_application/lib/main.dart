@@ -36,7 +36,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   Timer? mainTimer;
   Duration mainDuration = Duration.zero;
-  bool mainTimerOn = false;
+  bool timerOn = false;
 
   Timer? lapTimer;
   Duration lapDuration = Duration.zero;
@@ -75,15 +75,13 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 TimerButton(
                     color: Colors.grey,
-                    onPressed:
-                        mainTimerOn ? () => startLap() : () => resetTimer(),
-                    text: mainTimerOn ? 'Lap' : 'Reset'),
+                    onPressed: timerOn ? () => startLap() : () => resetTimer(),
+                    text: timerOn ? 'Lap' : 'Reset'),
                 const SizedBox(width: 15),
                 TimerButton(
-                  color: mainTimerOn ? Colors.redAccent : Colors.lightGreen,
-                  onPressed:
-                      mainTimerOn ? () => stopTimer() : () => startTimer(),
-                  text: mainTimerOn ? 'Stop' : 'Start',
+                  color: timerOn ? Colors.redAccent : Colors.lightGreen,
+                  onPressed: timerOn ? () => stopTimer() : () => startTimer(),
+                  text: timerOn ? 'Stop' : 'Start',
                 ),
               ],
             ),
@@ -117,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void startTimer() {
     setState(() {
-      mainTimerOn = true;
+      timerOn = true;
     });
     mainTimer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
       setState(() {
@@ -136,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void stopTimer() {
     setState(() {
-      mainTimerOn = false;
+      timerOn = false;
     });
     mainTimer?.cancel();
     lapTimer?.cancel();
@@ -169,5 +167,6 @@ class _MyHomePageState extends State<MyHomePage> {
   void dispose() {
     super.dispose();
     mainTimer?.cancel();
+    lapTimer?.cancel();
   }
 }
