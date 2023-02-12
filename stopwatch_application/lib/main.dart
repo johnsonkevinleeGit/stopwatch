@@ -31,9 +31,13 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Timer? timer;
-  Duration duration = Duration.zero;
-  bool timerOn = false;
+  Timer? mainTimer;
+  Duration mainDuration = Duration.zero;
+  bool mainTimerOn = false;
+
+  Timer? lapTimer;
+  Duration lapDuration = Duration.zero;
+
   int counter = 1;
   List<Lap> lapList = [];
 
@@ -47,14 +51,17 @@ class _MyHomePageState extends State<MyHomePage> {
         body: Center(
             child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 25),
-            Text(
-              formatTimerDuration(duration),
-              style: Theme.of(context)
-                  .textTheme
-                  .headline2
-                  ?.copyWith(color: Colors.white),
+            Center(
+              child: Text(
+                formatTimerDuration(mainDuration),
+                style: Theme.of(context)
+                    .textTheme
+                    .headline2
+                    ?.copyWith(color: Colors.white),
+              ),
             ),
             const SizedBox(height: 10),
             Row(
@@ -62,19 +69,30 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 TimerButton(
                     color: Colors.grey,
-                    onPressed: timerOn ? () => startLap() : () => resetTimer(),
-                    text: timerOn ? 'Lap' : 'Reset'),
+                    onPressed:
+                        mainTimerOn ? () => startLap() : () => resetTimer(),
+                    text: mainTimerOn ? 'Lap' : 'Reset'),
                 const SizedBox(width: 15),
                 TimerButton(
-                  color: timerOn ? Colors.redAccent : Colors.lightGreen,
-                  onPressed: timerOn ? () => stopTimer() : () => startTimer(),
-                  text: timerOn ? 'Stop' : 'Start',
+                  color: mainTimerOn ? Colors.redAccent : Colors.lightGreen,
+                  onPressed:
+                      mainTimerOn ? () => stopTimer() : () => startTimer(),
+                  text: mainTimerOn ? 'Stop' : 'Start',
                 ),
               ],
             ),
             const SizedBox(height: 25),
             const Divider(
                 indent: 10, endIndent: 10, color: Colors.white, thickness: 1),
+            if (lapDuration != Duration.zero) ...[
+              Lap(number: counter, lap: lapDuration),
+              const Divider(
+                indent: 10,
+                endIndent: 10,
+                thickness: .5,
+                color: Colors.white,
+              ),
+            ],
             Expanded(child: Builder(builder: (context) {
               return ListView.separated(
                 itemCount: lapList.length,
@@ -93,31 +111,40 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void startTimer() {
     setState(() {
-      timerOn = true;
+      mainTimerOn = true;
     });
-    timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+    mainTimer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
       setState(() {
-        final milliseconds = duration.inMilliseconds + 10;
-        duration = Duration(milliseconds: milliseconds);
+        final milliseconds = mainDuration.inMilliseconds + 10;
+        mainDuration = Duration(milliseconds: milliseconds);
+      });
+    });
+
+    lapTimer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
+      setState(() {
+        final milliseconds = lapDuration.inMilliseconds + 10;
+        lapDuration = Duration(milliseconds: milliseconds);
       });
     });
   }
 
   void stopTimer() {
     setState(() {
-      timerOn = false;
+      mainTimerOn = false;
     });
-    timer?.cancel();
+    mainTimer?.cancel();
+    lapTimer?.cancel();
   }
 
   void startLap() {
-    final currentMilliseconds = duration.inMilliseconds;
+    final currentMilliseconds = lapDuration.inMilliseconds;
     final newLap = Lap(
         key: ValueKey(currentMilliseconds),
         number: counter,
         lap: Duration(milliseconds: currentMilliseconds));
 
     setState(() {
+      lapDuration = Duration.zero;
       lapList.insert(0, newLap);
       counter++;
     });
@@ -125,15 +152,17 @@ class _MyHomePageState extends State<MyHomePage> {
 
   void resetTimer() {
     setState(() {
-      duration = Duration.zero;
+      mainDuration = Duration.zero;
+      lapDuration = Duration.zero;
       lapList.clear();
+      counter = 1;
     });
   }
 
   @override
   void dispose() {
     super.dispose();
-    timer?.cancel();
+    mainTimer?.cancel();
   }
 }
 
@@ -162,14 +191,6 @@ class TimerButton extends StatelessWidget {
           onPressed: onPressed,
           child: Text(text, style: Theme.of(context).textTheme.headline6)),
     );
-  }
-}
-
-class CurrentLap extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    // TODO: implement build
-    throw UnimplementedError();
   }
 }
 
