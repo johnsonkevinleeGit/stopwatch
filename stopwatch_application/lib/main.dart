@@ -57,16 +57,15 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 25),
-            Center(
-              child: SizedBox(
-                width: 250,
-                child: Text(
-                  formatTimerDuration(mainDuration),
-                  style: Theme.of(context)
-                      .textTheme
-                      .headline2
-                      ?.copyWith(color: Colors.white),
-                ),
+            SizedBox(
+              width: 250,
+              child: Text(
+                formatTimerDuration(mainDuration),
+                style: Theme.of(context)
+                    .textTheme
+                    .headline2
+                    ?.copyWith(color: Colors.white),
+                textAlign: TextAlign.center,
               ),
             ),
             const SizedBox(height: 10),
